@@ -13,6 +13,8 @@ int main (int args, char **argv)
     char filter_exp [] = "port 23"; /** The filter expression*/
     bpf_u_int32 mask;		/* The netmask of our sniffing device */
     bpf_u_int32 net;		/* The IP of our sniffing device */
+    struct pcap_pkthdr header; /* The header that pcap gives us*/
+    const u_char *packet;    /** The actual packet*/
 
     /*find a device*/
     device = pcap_lookupdev (error);
@@ -53,6 +55,7 @@ int main (int args, char **argv)
         fprintf(stderr, "Couldn't install filter %s: %s\n", filter_exp, pcap_geterr(handle));
         return (2);
     }
+    /** capture a single packet*/
 
 
 
