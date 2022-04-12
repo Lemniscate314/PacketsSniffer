@@ -14,6 +14,7 @@ int main (int args, char **argv)
     bpf_u_int32 mask;		/* The netmask of our sniffing device */
     bpf_u_int32 net;		/* The IP of our sniffing device */
     struct pcap_pkthdr header; /* The header that pcap gives us*/
+    int optimize = 0; /* Optimize ?*/
     const u_char *packet;    /** The actual packet*/
 
     /*find a device*/
@@ -37,7 +38,6 @@ int main (int args, char **argv)
         fprintf (stderr, "Couln't open device %s: %s\n", device, error);
         return (2);
     }
-    printf("Bon %s\n: ", device);
     if(pcap_datalink(handle) != DLT_EN10MB)
     {
         fprintf (stderr, "Device %s doesn't provide Ethernet headers\n",device);
@@ -45,7 +45,7 @@ int main (int args, char **argv)
     }
 
     /** Filtering traffic*/
-    if (pcap_compile(handle, &fp, filter_exp,0,net) == -1)
+    if (pcap_compile(handle, &fp, filter_exp,optimize,mask) == -1)
     {
         fprintf (stderr, "Couldn't parse filter %s: %s\n", filter_exp, pcap_geterr(handle));
         return (2);
@@ -56,6 +56,12 @@ int main (int args, char **argv)
         return (2);
     }
     /** capture a single packet*/
+    packet = pcap_next(handle, &header);
+	/* Print its length */
+	printf("Jacked a packet with length of [%d]\n", header.len);
+	/* And close the session */
+	pcap_close(handle);
+	return(0);
 
 
 
