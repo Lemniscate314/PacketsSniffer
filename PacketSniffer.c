@@ -1,11 +1,33 @@
 #include <stdio.h>
 #include <pcap.h>
 /** Ethernet adreses are 6 bytes */
-void collback (u_char args, const struct pcap_pkthdr *header, const u_char *packet)
+void callback_handler(u_char *args, const struct pcap_pkthdr *header, const u_char *packet)
 {
-    
-    return;
-
+    struct ether_header *eth_header;
+    eth_header = (struct ether_header *)packet;
+    /** You need to find the emplacement of each of this parts in the packets
+     * the ip header
+     * the tcp header
+     * and finally the payload
+    */
+   /** headers*/
+   const u_char *ip_header;
+   const u_char *tcp_header;
+   const u_char *payload;  
+   /**length of header*/
+   int eth_header_len = 14;
+   int ip_header_len;
+   int tcp_header_len;
+   int payload_len;
+   /***/
+   ip_header= packet + eth_header_len;
+   /**Determine the IP header*/
+   ip_header = packet + eth_header_len;
+   ip_header_len = ((*ip_header) & 0x0F) * 4; 
+   printf("IP header length in bytes: %d\n", ip_header_len);
+   u_char protocol = *(ip_header + 9);
+   tcp_header = packet + eth_header_len + ip_header_len; 
+   tcp_header_len = ((*tcp_header + 12) & 0xF)>>4;
 }
 int main (int args, char **argv)
 {
@@ -34,8 +56,10 @@ int main (int args, char **argv)
     if(pcap_lookupnet(device, &net, &mask, error) == -1)
     {
         fprintf(stderr, "Can't get netmask for device %s\n", device);
+        return 2;
 
     }
+    printf("%d\n",net);
 
     /**Opening the device for sniffing*/   
     handle = pcap_open_live(device, snaplen,promiscuous,to_ms,error);
@@ -66,10 +90,8 @@ int main (int args, char **argv)
 	/* Print its length */
 	printf("Jacked a packet with length of [%d]\n", header.len);
 	/* And close the session */
+
 	pcap_close(handle);
-	return 2;
-
-
 
     return 1;
 
