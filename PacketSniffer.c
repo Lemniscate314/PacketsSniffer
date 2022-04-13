@@ -23,11 +23,20 @@ void callback_handler(u_char *args, const struct pcap_pkthdr *header, const u_ch
    ip_header= packet + eth_header_len;
    /**Determine the IP header*/
    ip_header = packet + eth_header_len;
-   ip_header_len = ((*ip_header) & 0x0F) * 4; 
+   ip_header_len = ((*ip_header) & 0x0F) * 4;  
    printf("IP header length in bytes: %d\n", ip_header_len);
    u_char protocol = *(ip_header + 9);
    tcp_header = packet + eth_header_len + ip_header_len; 
    tcp_header_len = ((*tcp_header + 12) & 0xF)>>4;
+   tcp_header_len *= 4;
+   printf("TCP header length in bytes: %d\n", tcp_header_len);
+   int tot_headers_len = eth_header_len + ip_header_len + tcp_header_len;
+   payload_len = header->caplen - (eth_header_len + ip_header_len + tcp_header_len);
+   printf("Payload size: %d bytes\n", payload_len);
+
+   payload = packet + tot_headers_len;
+   printf("Memory  address of payload: %p\n\n", payload);
+
 }
 int main (int args, char **argv)
 {
@@ -89,9 +98,12 @@ int main (int args, char **argv)
     packet = pcap_next(handle, &header);
 	/* Print its length */
 	printf("Jacked a packet with length of [%d]\n", header.len);
+    pcap_loop(handle, 200, callback_handler, NULL);
 	/* And close the session */
 
 	pcap_close(handle);
+    
+
 
     return 1;
 
